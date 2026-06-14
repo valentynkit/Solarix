@@ -3,7 +3,26 @@
 [![CI](https://github.com/valentynkt/Solarix/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/valentynkt/Solarix/actions/workflows/ci.yml)
 [![MSRV: 1.88](https://img.shields.io/badge/MSRV-1.88-orange.svg)](rust-toolchain.toml)
 
-Solarix is a universal Solana indexer built in Rust. Give it any Anchor program ID and it fetches the IDL directly from the blockchain, generates a typed PostgreSQL schema at runtime — no codegen, no recompile, no redeploy — then begins indexing transactions and account states through a concurrent backfill-plus-streaming pipeline. Decoded data is immediately queryable through a 13-endpoint REST API with typed filters, cursor pagination, and time-series aggregations. Built for the [Superteam Ukraine bounty](https://earn.superteam.fun/) (Middle level, 500 USDG).
+*A universal Solana indexer in Rust — point it at any Anchor program and query its on-chain data over REST.*
+
+Give Solarix any Anchor program ID and it fetches the IDL directly from the
+chain, generates a typed PostgreSQL schema at runtime — no codegen, no recompile,
+no redeploy — then indexes transactions and account state through a concurrent
+backfill-plus-streaming pipeline. Decoded data is immediately queryable through a
+13-endpoint REST API with typed filters, cursor pagination, and time-series
+aggregations. Built for the [Superteam Ukraine bounty](https://earn.superteam.fun/)
+(Middle level, 500 USDG).
+
+**What's notable here:**
+
+- [Runtime schema generation](#architectural-decisions) — PostgreSQL DDL built
+  from the IDL at registration; any Anchor program works on the first request
+- [Hybrid typed + JSONB storage](#database-layout) — scalars promoted to native
+  columns for fast filters, complex types preserved without loss in JSONB
+- [Concurrent backfill + streaming](#architecture) — historical RPC and live
+  WebSocket run at once; idempotent writes make the overlap harmless
+- [Typed errors, zero `unwrap`](#architectural-decisions) — retry classification
+  the compiler enforces, behind 383 tests and strict clippy
 
 ```
 POST /api/programs  { "program_id": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo" }
